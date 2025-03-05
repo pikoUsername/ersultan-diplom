@@ -36,18 +36,34 @@ class Dealer(models.Model):
         return self.name
 
 
-# 2. Машина
 class Car(models.Model):
-    brand = models.CharField(max_length=50, verbose_name="Марка")
-    model = models.CharField(max_length=50, verbose_name="Модель")
+    class CarType(models.TextChoices):
+        SEDAN = 'Sedan', 'Седан'
+        SUV = 'SUV', 'Внедорожник'
+        HATCHBACK = 'Hatchback', 'Хэтчбек'
+        CABRIOLET = 'Cabriolet', 'Кабриолет'
+        COUPE = 'Coupe', 'Купе'
+        MINIVAN = 'Minivan', 'Минивэн'
+        PICKUP = 'Pickup', 'Пикап'
+
+    brand = models.CharField(max_length=100, verbose_name="Марка")
+    model = models.CharField(max_length=100, verbose_name="Модель")
+    type = models.CharField(
+        max_length=20,
+        choices=CarType.choices,
+        default=CarType.SEDAN,
+        verbose_name="Тип"
+    )
     year = models.PositiveIntegerField(verbose_name="Год выпуска")
-    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена за час")
-    is_available = models.BooleanField(default=True, verbose_name="Доступность")
-    owner = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="cars", verbose_name="Владелец")
-    dealer = models.ForeignKey(Dealer, on_delete=models.SET_NULL, null=True, blank=True, related_name="cars", verbose_name="Дилер")
+    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена за час (тг)")
+    is_available = models.BooleanField(default=True, verbose_name="Доступна")
+    description = models.TextField(blank=True, null=True, verbose_name="Описание")
+    dealer = models.ForeignKey("Dealer", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Дилер")
+    image = models.ImageField(upload_to='cars/', null=True, blank=True, verbose_name="Фото")
 
     def __str__(self):
         return f"{self.brand} {self.model} ({self.year})"
+
 
     class Meta:
         verbose_name = "Машина"
