@@ -1,0 +1,143 @@
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
+from django.utils.timezone import now
+
+
+class UserModel(AbstractUser):
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+
+    avatar = models.ImageField(null=True, blank=True, upload_to='-/users', verbose_name="Аватар")
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Телефон")
+    address = models.TextField(blank=True, null=True, verbose_name="Адрес")
+    date_of_birth = models.DateField(blank=True, null=True, verbose_name="Дата рождения")
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0, verbose_name="Баланс")
+
+    def get_avatar(self, default=None):
+        if self.avatar:
+            return '%s%s' % (settings.MEDIA_URL, self.avatar)
+        return default
+
+    def __str__(self):
+        return self.username
+
+
+# 1. Дилерский центр (точка получения машины)
+class Dealer(models.Model):
+    name = models.CharField(max_length=100, verbose_name="Название")
+    address = models.TextField(verbose_name="Адрес")
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name="Широта")
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name="Долгота")
+
+    def __str__(self):
+        return self.name
+
+
+# 2. Машина
+class Car(models.Model):
+    brand = models.CharField(max_length=50, verbose_name="Марка")
+    model = models.CharField(max_length=50, verbose_name="Модель")
+    year = models.PositiveIntegerField(verbose_name="Год выпуска")
+    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена за час")
+    is_available = models.BooleanField(default=True, verbose_name="Доступность")
+    owner = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="cars", verbose_name="Владелец")
+    dealer = models.ForeignKey(Dealer, on_delete=models.SET_NULL, null=True, blank=True, related_name="cars", verbose_name="Дилер")
+
+    def __str__(self):
+        return f"{self.brand} {self.model} ({self.year})"
+
+    class Meta:
+        verbose_name = "Машина"
+        verbose_name_plural = "Машины"
+
+
+# 3. Отзывы пользователей на машины
+class CarReview(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, verbose_name="Пользватель")
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name="reviews", verbose_name="Автомобиль")
+    rating = models.FloatField(validators=[MinValueValidator(1.0), MaxValueValidator(5.0)], verbose_name="Оценка")
+    comment = models.TextField(blank=True, verbose_name="Комментарий")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата отзыва")
+
+    def __str__(self):
+        return f"Отзыв {self.user.username} на {self.car} ({self.rating})"
+
+
+class Rental(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, verbose_name="Пользователь")
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name="Автомобиль")
+    start_time = models.DateTimeField(default=now, verbose_name="Начало аренды")
+    end_time = models.DateTimeField(verbose_name="Окончание аренды")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name="Итоговая цена")
+    is_paid = models.BooleanField(default=False, verbose_name="Оплачено")
+
+    def save(self, *args, **kwargs):
+        """Рассчитываем итоговую цену перед сохранением"""
+        if self.start_time and self.end_time:
+            hours = (self.end_time - self.start_time).total_seconds() / 3600
+            if hours > 0:
+                self.total_price = hours * self.car.price_per_hour
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Аренда {self.car} пользователем {self.user.username}"
+
+
+class Transaction(models.Model):
+    TRANSACTION_TYPES = (
+        ("TOP_UP", "Пополнение баланса"),
+        ("RENTAL", "Оплата аренды"),
+    )
+
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, verbose_name="Пользователь")
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES, verbose_name="Тип")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма")
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Дата")
+
+    def __str__(self):
+        return f"Транзакция {self.user.username}: {self.transaction_type} {self.amount}"
+
+
+# 3. Текущее местоположение машины
+class CarLocation(models.Model):
+    car = models.OneToOneField(Car, on_delete=models.CASCADE, related_name="location", verbose_name="Автомобиль")
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name="Широта")
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name="Долгота")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
+
+    def __str__(self):
+        return f"Местоположение {self.car} ({self.latitude}, {self.longitude})"
+
+    @staticmethod
+    def get_last_position(car_id):
+        """Получает последнюю зафиксированную позицию машины"""
+        try:
+            return CarLocation.objects.get(car_id=car_id)
+        except CarLocation.DoesNotExist:
+            return None
+
+
+# 4. История перемещений (лог трекинга)
+class TripTracking(models.Model):
+    rental = models.ForeignKey("Rental", on_delete=models.CASCADE, related_name="tracking", verbose_name="Аренда")
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Время фиксации")
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name="Широта")
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name="Долгота")
+
+    def __str__(self):
+        return f"Трек аренды {self.rental.id} ({self.latitude}, {self.longitude})"
+
+
+# 6. Штрафы
+class Fine(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, verbose_name="Пользователь")
+    rental = models.ForeignKey(Rental, on_delete=models.CASCADE, verbose_name="Аренда")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма штрафа")
+    reason = models.TextField(verbose_name="Причина")
+    issued_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата")
+
+    def __str__(self):
+        return f"Штраф {self.user.username} ({self.amount} руб.)"
