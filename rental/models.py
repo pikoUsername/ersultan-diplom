@@ -4,25 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.timezone import now
 
-
-class UserModel(AbstractUser):
-    class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
-
-    avatar = models.ImageField(null=True, blank=True, upload_to='-/users', verbose_name="Аватар")
-    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Телефон")
-    address = models.TextField(blank=True, null=True, verbose_name="Адрес")
-    date_of_birth = models.DateField(blank=True, null=True, verbose_name="Дата рождения")
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0, verbose_name="Баланс")
-
-    def get_avatar(self, default=None):
-        if self.avatar:
-            return '%s%s' % (settings.MEDIA_URL, self.avatar)
-        return default
-
-    def __str__(self):
-        return self.username
+from accounts.models import UserModel
 
 
 # 1. Дилерский центр (точка получения машины)
@@ -46,6 +28,14 @@ class Car(models.Model):
         MINIVAN = 'Minivan', 'Минивэн'
         PICKUP = 'Pickup', 'Пикап'
 
+    class TransmissionTypes(models.TextChoices):
+        MANUAL = 'Manual', 'Механика'
+        AUTOMATIC = 'Automatic', 'Автоматическая'
+
+    class FuelTypes(models.TextChoices):
+        PB95 = "PB95", "PB95"
+        PB98 = "PB98", "PB98"
+
     brand = models.CharField(max_length=100, verbose_name="Марка")
     model = models.CharField(max_length=100, verbose_name="Модель")
     type = models.CharField(
@@ -60,10 +50,21 @@ class Car(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name="Описание")
     dealer = models.ForeignKey("Dealer", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Дилер")
     image = models.ImageField(upload_to='cars/', null=True, blank=True, verbose_name="Фото")
+    transmission = models.CharField(
+        max_length=20,
+        choices=TransmissionTypes.choices,
+        verbose_name="Трансмиссия",
+        default=TransmissionTypes.MANUAL
+    )
+    fuel_type = models.CharField(
+        max_length=20,
+        choices=FuelTypes.choices,
+        verbose_name="Тип топлива",
+        default=FuelTypes.PB95,
+    )
 
     def __str__(self):
         return f"{self.brand} {self.model} ({self.year})"
-
 
     class Meta:
         verbose_name = "Машина"

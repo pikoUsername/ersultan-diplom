@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Car Rental{% endblock %}
+
+{% block content %}
+<!-- Главный баннер -->
+<section class="bg-primary text-white text-center py-5 position-relative">
+    <div class="container">
+        <h1 class="fw-bold">Experience the road like never before</h1>
+        <p class="lead">Aliquam adipiscing velit semper morbi. Purus non eu cursus porttitor tristique et gravida.</p>
+        <a href="{% url 'car_list' %}" class="btn btn-warning btn-lg">View all cars</a>
+    </div>
+</section>
+
+<!-- Форма бронирования -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-4 mx-auto p-4 bg-light shadow rounded">
+            <h4 class="text-center">Book your car</h4>
+            <form>
+                <div class="mb-3">
+                    <label class="form-label">Car type</label>
+                    <select class="form-select">
+                        <option>Select a car</option>
+                        <option>Sedan</option>
+                        <option>SUV</option>
+                        <option>Sports</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Place of rental</label>
+                    <input type="text" class="form-control" placeholder="Enter location">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Place of return</label>
+                    <input type="text" class="form-control" placeholder="Enter location">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Rental date</label>
+                    <input type="date" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Return date</label>
+                    <input type="date" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-warning w-100">Book now</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Особенности сервиса -->
+<div class="container my-5">
+    <div class="row text-center">
+        <div class="col-md-4">
+            <img src="https://cdn-icons-png.flaticon.com/512/685/685352.png" width="50" alt="Availability">
+            <h5 class="mt-2">Availability</h5>
+            <p>Diam tincidunt tincidunt erat at semper fermentum.</p>
+        </div>
+        <div class="col-md-4">
+            <img src="https://cdn-icons-png.flaticon.com/512/1995/1995492.png" width="50" alt="Comfort">
+            <h5 class="mt-2">Comfort</h5>
+            <p>Gravida auctor fermentum morbi vulputate.</p>
+        </div>
+        <div class="col-md-4">
+            <img src="https://cdn-icons-png.flaticon.com/512/2821/2821925.png" width="50" alt="Savings">
+            <h5 class="mt-2">Savings</h5>
+            <p>Pretium convallis id diam sed commodo.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Каталог автомобилей -->
+<section class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold">Choose the car that suits you</h2>
+        <a href="{% url 'car_list' %}" class="text-decoration-none fw-bold">View All &rarr;</a>
+    </div>
+
+    <div class="row">
+        {% for car in cars %}
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <img src="{{ car.image.url }}" class="card-img-top" alt="{{ car.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ car.brand }} - {{ car.model }}</h5>
+                    <p class="fw-bold text-primary">${{ car.price_per_hour }} per hours</p>
+                    <ul class="list-inline small">
+                        <li class="list-inline-item">🚗 {{ car.type }}</li>
+                        <li class="list-inline-item">⚙️ {{ car.transmission }}</li>
+                        <li class="list-inline-item">⛽ {{ car.fuel }}</li>
+                        <li class="list-inline-item">❄️ Air Conditioner</li>
+                    </ul>
+                    <a href="{% url 'car_detail' car.id %}" class="btn btn-primary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Факты о компании -->
+<section class="bg-primary text-white py-5">
+    <div class="container text-center">
+        <h2 class="fw-bold">Facts In Numbers</h2>
+        <p>Amet cras hac orci lacus. Faucibus ipsum arcu lectus nibh sapien bibendum ullamcorper.</p>
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <h3 class="fw-bold">540+</h3>
+                <p>Cars</p>
+            </div>
+            <div class="col-md-3">
+                <h3 class="fw-bold">20k+</h3>
+                <p>Customers</p>
+            </div>
+            <div class="col-md-3">
+                <h3 class="fw-bold">25+</h3>
+                <p>Years</p>
+            </div>
+            <div class="col-md-3">
+                <h3 class="fw-bold">20m+</h3>
+                <p>Miles</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -3,23 +3,8 @@ from django import forms
 from guardian.admin import GuardedModelAdmin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
-    UserModel, Dealer, Car, CarLocation, TripTracking, Rental, Transaction, CarReview, Fine
+    Dealer, Car, CarLocation, TripTracking, Rental, Transaction, CarReview, Fine
 )
-
-
-class UserForm(forms.ModelForm):
-    class Meta:
-        model = UserModel
-        fields = '__all__'
-
-
-@admin.register(UserModel)
-class CustomUserAdmin(UserAdmin):
-    form = UserForm
-    list_display = ['username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff']
-    list_filter = ['is_active', 'is_staff', 'is_superuser']
-    search_fields = ['username', 'email']
-    readonly_fields = ['last_login', 'date_joined']
 
 
 class RentalForm(forms.ModelForm):
@@ -31,8 +16,8 @@ class RentalForm(forms.ModelForm):
 @admin.register(Rental)
 class RentalAdmin(GuardedModelAdmin):
     form = RentalForm
-    list_display = ['user', 'car', 'start_time', 'end_time', 'status']
-    list_filter = ['status']
+    list_display = ['user', 'car', 'start_time', 'end_time', 'is_paid']  # Убрали 'status'
+    list_filter = ['is_paid']
     search_fields = ['user__username', 'car__brand']
     autocomplete_fields = ['user', 'car']
 
@@ -46,10 +31,10 @@ class TransactionForm(forms.ModelForm):
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     form = TransactionForm
-    list_display = ['user', 'amount', 'transaction_type', 'status', 'created_at']
-    list_filter = ['transaction_type', 'status']
+    list_display = ['user', 'amount', 'transaction_type', 'timestamp']  # Убрали 'status'
+    list_filter = ['transaction_type']
     search_fields = ['user__username']
-    readonly_fields = ['created_at']
+    readonly_fields = ['timestamp']  # 'created_at' нет в модели, но есть 'timestamp'
 
 
 class ReviewForm(forms.ModelForm):
@@ -76,9 +61,9 @@ class FineForm(forms.ModelForm):
 @admin.register(Fine)
 class FineAdmin(admin.ModelAdmin):
     form = FineForm
-    list_display = ['user', 'car', 'amount', 'reason', 'created_at']
-    search_fields = ['user__username', 'car__brand']
-    readonly_fields = ['created_at']
+    list_display = ['user', 'rental', 'amount', 'reason', 'issued_at']  # Убрали 'car'
+    search_fields = ['user__username', 'rental__car__brand']
+    readonly_fields = ['issued_at']  # Убрали 'created_at'
 
 
 class DealerForm(forms.ModelForm):
@@ -121,7 +106,6 @@ class CarAdmin(GuardedModelAdmin):
     autocomplete_fields = ['dealer']
 
 
-### 3. Форма для текущего местоположения
 class CarLocationForm(forms.ModelForm):
     class Meta:
         model = CarLocation

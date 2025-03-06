@@ -22,4 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("metrics/", exports.ExportToDjangoView, name="metrics"),
     path("", include("rental.urls")),
+
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', include("accounts.urls")),
 ]
