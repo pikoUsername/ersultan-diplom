@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Список автомобилей</h2>
+
+    <!-- Фильтр по типу -->
+    <ul>
+        <li><a href="{% url 'car_list' %}">Все машины</a></li>
+        <li><a href="{% url 'car_list_by_type' 'Sedan' %}">Седаны</a></li>
+        <li><a href="{% url 'car_list_by_type' 'SUV' %}">Внедорожники</a></li>
+        <li><a href="{% url 'car_list_by_type' 'Cabriolet' %}">Кабриолеты</a></li>
+        <li><a href="{% url 'car_list_by_type' 'Minivan' %}">Минивэны</a></li>
+    </ul>
+
+    <!-- Список машин -->
+    <div class="car-list">
+        {% for car in cars %}
+            <div class="car">
+                <h3>{{ car.brand }} {{ car.model }} ({{ car.year }})</h3>
+                <p>Тип: {{ car.get_type_display }}</p>
+                <p>Цена за час: {{ car.price_per_hour }} тг</p>
+                {% if car.image %}
+                    <img src="{{ car.image.url }}" alt="{{ car.brand }} {{ car.model }}" width="200">
+                {% endif %}
+            </div>
+        {% empty %}
+            <p>Машины не найдены.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

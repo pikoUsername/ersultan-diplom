@@ -10,16 +10,47 @@ from .models import (
 class RentalForm(forms.ModelForm):
     class Meta:
         model = Rental
-        fields = '__all__'
+        fields = "__all__"
+        widgets = {
+            "start_time": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "end_time": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        }
 
 
 @admin.register(Rental)
 class RentalAdmin(GuardedModelAdmin):
     form = RentalForm
-    list_display = ['user', 'car', 'start_time', 'end_time', 'is_paid']  # Убрали 'status'
-    list_filter = ['is_paid']
-    search_fields = ['user__username', 'car__brand']
-    autocomplete_fields = ['user', 'car']
+    list_display = ["id", "user", "car", "get_start_time", "get_end_time", "total_price", "is_paid"]
+    list_filter = ["is_paid"]
+    search_fields = ["user__username", "car__brand", "car__model"]
+    autocomplete_fields = ["user", "car"]
+    readonly_fields = ["total_price"]
+    list_editable = ["is_paid"]
+    ordering = ["-id"]  # Сортировка по ID вместо start_time
+    date_hierarchy = None  # Убрали, чтобы не вызывало ошибку
+
+    fieldsets = (
+        ("Информация об аренде", {
+            "fields": ("user", "car", "start_time", "end_time", "total_price", "is_paid"),
+        }),
+    )
+
+    def get_queryset(self, request):
+        """Оптимизируем запросы"""
+        qs = super().get_queryset(request)
+        return qs.select_related("user", "car")
+
+    @admin.display(description="Начало аренды")
+    def get_start_time(self, obj):
+        return obj.start_time.strftime("%Y-%m-%d %H:%M") if obj.start_time else "—"
+
+    @admin.display(description="Окончание аренды")
+    def get_end_time(self, obj):
+        return obj.end_time.strftime("%Y-%m-%d %H:%M") if obj.end_time else "—"
+
+    def save_model(self, request, obj, form, change):
+        """Пересчитываем итоговую сумму перед сохранением"""
+        obj.save()
 
 
 class TransactionForm(forms.ModelForm):

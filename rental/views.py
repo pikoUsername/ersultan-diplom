@@ -1,5 +1,7 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, DetailView, FormView, ListView
+from django.views.generic import TemplateView, DetailView, ListView, CreateView
+from django.contrib import messages
 
 from .admin import RentalForm
 from .models import Car, CarReview, Rental, Transaction
@@ -46,18 +48,25 @@ class CarDetailView(DetailView):
     context_object_name = "car"
 
 
-class CarRentalView(FormView):
-    template_name = "car_rental.html"
+
+class RentCarView(LoginRequiredMixin, CreateView):
+    model = Rental
     form_class = RentalForm
-    success_url = reverse_lazy("home")
+    template_name = "rental/rent_car.html"
+    success_url = reverse_lazy("rental_success")  # редирект после успешной аренды
 
     def form_valid(self, form):
-        car_id = self.kwargs.get("pk")
-        car = Car.objects.get(id=car_id)
         rental = form.save(commit=False)
-        rental.car = car
         rental.user = self.request.user
+
+        # Проверка заполнения данных карты, если выбрана оплата картой
+        if rental.payment_method == "CARD":
+            if not (rental.card_number and rental.expiration_date and rental.card_holder and rental.cvc):
+                messages.error(self.request, "Заполните данные карты!")
+                return self.form_invalid(form)
+
         rental.save()
+        messages.success(self.request, "Аренда успешно оформлена!")
         return super().form_valid(form)
 
 

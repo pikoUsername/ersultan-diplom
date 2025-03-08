@@ -84,19 +84,54 @@ class CarReview(models.Model):
 
 
 class Rental(models.Model):
+    PAYMENT_METHODS = (
+        ("CARD", "Банковская карта"),
+        ("PAYPAL", "PayPal"),
+        ("BITCOIN", "Bitcoin"),
+    )
+
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE, verbose_name="Пользователь")
     car = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name="Автомобиль")
+
     start_time = models.DateTimeField(default=now, verbose_name="Начало аренды")
     end_time = models.DateTimeField(verbose_name="Окончание аренды")
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name="Итоговая цена")
+
+    # Личные данные
+    full_name = models.CharField(max_length=255, verbose_name="ФИО")
+    phone_number = models.CharField(max_length=20, verbose_name="Телефон")
+    address = models.TextField(verbose_name="Адрес")
+    city = models.CharField(max_length=100, verbose_name="Город")
+
+    # Локация аренды
+    pickup_location = models.CharField(max_length=255, verbose_name="Место получения")
+    pickup_date = models.DateField(verbose_name="Дата получения")
+    pickup_time = models.TimeField(verbose_name="Время получения")
+
+    # Локация возврата
+    dropoff_location = models.CharField(max_length=255, verbose_name="Место возврата")
+    dropoff_date = models.DateField(verbose_name="Дата возврата")
+    dropoff_time = models.TimeField(verbose_name="Время возврата")
+
+    # Оплата
+    payment_method = models.CharField(
+        max_length=10,
+        choices=PAYMENT_METHODS,
+        verbose_name="Метод оплаты"
+    )
+    card_number = models.CharField(max_length=16, blank=True, null=True, verbose_name="Номер карты")
+    expiration_date = models.CharField(max_length=7, blank=True, null=True, verbose_name="Срок действия карты (MM/YY)")
+    card_holder = models.CharField(max_length=255, blank=True, null=True, verbose_name="Владелец карты")
+    cvc = models.CharField(max_length=3, blank=True, null=True, verbose_name="CVC")
+
     is_paid = models.BooleanField(default=False, verbose_name="Оплачено")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name="Итоговая цена")
 
     def save(self, *args, **kwargs):
-        """Рассчитываем итоговую цену перед сохранением"""
-        if self.start_time and self.end_time:
-            hours = (self.end_time - self.start_time).total_seconds() / 3600
-            if hours > 0:
-                self.total_price = hours * self.car.price_per_hour
+        """Автоматический расчет стоимости аренды"""
+        if self.pickup_date and self.dropoff_date:
+            days = (self.dropoff_date - self.pickup_date).days
+            self.total_price = days * self.car.price_per_hour * 24  # Цена за сутки
+
         super().save(*args, **kwargs)
 
     def __str__(self):

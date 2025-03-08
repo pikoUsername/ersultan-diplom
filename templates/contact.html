@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us - Car Rental{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-4">
+    <h1 class="fw-bold">Contact Us</h1>
+    <p class="text-muted">Home / Contact Us</p>
+</div>
+
+<!-- Форма бронирования + изображение -->
+<div class="container mt-4">
+    <div class="row g-4">
+        <!-- Форма -->
+        <div class="col-md-5">
+            <div class="p-4 bg-primary text-white rounded shadow">
+                <h4 class="text-center">Book your car</h4>
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Car type</label>
+                        <select class="form-select">
+                            <option>Select a car</option>
+                            <option>Sedan</option>
+                            <option>SUV</option>
+                            <option>Sports</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Place of rental</label>
+                        <input type="text" class="form-control" placeholder="Enter location">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Place of return</label>
+                        <input type="text" class="form-control" placeholder="Enter location">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rental date</label>
+                        <input type="date" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Return date</label>
+                        <input type="date" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100">Book now</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Изображение -->
+        <div class="col-md-7">
+            <div class="rounded shadow overflow-hidden">
+                <img src="https://via.placeholder.com/700x350" class="img-fluid w-100" alt="Contact Image">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Контактная информация -->
+<div class="container mt-5">
+    <div class="row text-center">
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <img src="https://cdn-icons-png.flaticon.com/512/684/684809.png" width="40" alt="Address">
+                <h6 class="mt-2">Address</h6>
+                <p>Oxford Ave. Cary, NC 27511</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" width="40" alt="Email">
+                <h6 class="mt-2">Email</h6>
+                <p><a href="mailto:nwiger@yahoo.com">nwiger@yahoo.com</a></p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" width="40" alt="Phone">
+                <h6 class="mt-2">Phone</h6>
+                <p><a href="tel:+5375476401">+537 547-6401</a></p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center">
+                <img src="https://cdn-icons-png.flaticon.com/512/2922/2922804.png" width="40" alt="Opening Hours">
+                <h6 class="mt-2">Opening hours</h6>
+                <p>Sun-Mon: 10am - 10pm</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Блог -->
+<section class="container my-5">
+    <h2 class="fw-bold text-center">Latest blog posts & news</h2>
+    <div class="row mt-3">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <img src="https://via.placeholder.com/350x200" class="card-img-top" alt="Blog 1">
+                <div class="card-body">
+                    <h5 class="card-title">How To Choose The Right Car</h5>
+                    <p class="text-muted">7 April 2024</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <img src="https://via.placeholder.com/350x200" class="card-img-top" alt="Blog 2">
+                <div class="card-body">
+                    <h5 class="card-title">Which plan is right for me?</h5>
+                    <p class="text-muted">7 April 2024</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <img src="https://via.placeholder.com/350x200" class="card-img-top" alt="Blog 3">
+                <div class="card-body">
+                    <h5 class="card-title">Enjoy Speed, Choice & Total Control</h5>
+                    <p class="text-muted">7 April 2024</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Логотипы партнеров -->
+<section class="container my-5 text-center">
+    <div class="d-flex justify-content-center align-items-center flex-wrap gap-3">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Ford_logo_flat.svg/150px-Ford_logo_flat.svg.png" width="100" alt="Ford">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Jeep_logo.svg/150px-Jeep_logo.svg.png" width="100" alt="Jeep">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Audi_Logo.svg/150px-Audi_Logo.svg.png" width="100" alt="Audi">
+    </div>
+</section>
+
+{% endblock %}
